@@ -1,5 +1,4 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // Fill out your copyright notice in the Description page of Project Settings.
-
 #include "TankPlayerController.h"
 
 void ATankPlayerController::BeginPlay()
@@ -19,26 +18,18 @@ void ATankPlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	AimTowardsCrosshair();
-	
 }
-
 ATank* ATankPlayerController::GetControlledTank() const
 {
 	return Cast<ATank>(GetPawn());
 }
 void ATankPlayerController::AimTowardsCrosshair()
 {
-	if (!GetControlledTank()) 
-	{
-		return;
-	}
+	if (!GetControlledTank()) {return;}
 	FVector HitLocation;//out parameter
 	if (GetSightRayHitLocation(HitLocation))
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Hit location:%s"), *HitLocation.ToString());
-		
-
-		// tell the controlled tank to aim at this point
+		GetControlledTank()->AimAt(HitLocation);
 	}
 }
 //get world location through location and line traced, true if hit lnadscape
@@ -47,7 +38,38 @@ bool ATankPlayerController::GetSightRayHitLocation(FVector& HitLocation) const
 	//find the crosshair position
 	int32 ViewPortSizeX, ViewPortSizeY;
 	GetViewportSize(ViewPortSizeX, ViewPortSizeY);
-	//"de project" the screen position of the crosshair to a world direction
-	// line trace along that look direction ,and see what we hit(up to max range)
+	auto ScreenLocation = FVector2D(ViewPortSizeX*CrosshairXLocation, ViewPortSizeY*CrosshairYLocation);
+	//UE_LOG(LogTemp, Warning, TEXT("Screen location:%s"), *HitLocation.ToString());
+	FVector LookDirection;
+	if(GetLookDirection(ScreenLocation,LookDirection))
+	{
+		// line trace along that look direction ,and see what we hit(up to max range)
+		GetLookVectorHitLocation(LookDirection,HitLocation);
+		//UE_LOG(LogTemp, Warning, TEXT("Hit location:%s"), *LookDirection.ToString());
+	}
 	return true;
 }
+bool ATankPlayerController::GetLookVectorHitLocation(FVector LookDirection, FVector&HitLocation) const
+{
+	FHitResult Hitresult;
+	auto StartLocation = PlayerCameraManager->GetCameraLocation();
+	auto EndLocation = StartLocation + (LookDirection*LineTraceRange);
+	if(GetWorld()->LineTraceSingleByChannel(
+		Hitresult,
+		StartLocation,
+		EndLocation,
+		ECollisionChannel::ECC_Visibility))
+		{
+		HitLocation= Hitresult.Location;
+			return true;
+		}
+	HitLocation = FVector(0);
+	return false;
+}
+bool ATankPlayerController::GetLookDirection(FVector2D ScreenLocation, FVector&LookDirection) const
+{
+	//"de project" the screen position of the crosshair to a world direction
+	FVector CameraWorldLocation;
+	return DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, CameraWorldLocation, LookDirection);
+}
+
