@@ -1,6 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TankAimingComponent.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "TankBarrel.h"
 // Sets default values for this component's properties
 UTankAimingComponent::UTankAimingComponent()
 {
@@ -10,28 +13,47 @@ UTankAimingComponent::UTankAimingComponent()
 
 	// ...
 }
-void UTankAimingComponent::SetBarrelReference(UStaticMeshComponent*BarrelToSet)
+void UTankAimingComponent::SetBarrelReference(UTankBarrel*BarrelToSet)
 {
 	Barrel = BarrelToSet;
 }
-// Called when the game starts
-void UTankAimingComponent::BeginPlay()
+void UTankAimingComponent::AimAt(FVector HitLocation,float LaunchSpeed)
 {
-	Super::BeginPlay();
-
-	// ...
-	
+	if (!Barrel) { return; }
+	FVector OutLaunchVelocity;
+	FVector StartLocation = Barrel->GetSocketLocation(FName("Projectile"));
+	bool bHaveAimSolution = UGameplayStatics::SuggestProjectileVelocity
+	(
+		this,
+		OutLaunchVelocity,
+		StartLocation,
+		HitLocation,
+		LaunchSpeed,
+		false,
+		0,
+		0,
+		ESuggestProjVelocityTraceOption::DoNotTrace
+	);
+		if (bHaveAimSolution)
+		{
+			auto AimDirection = OutLaunchVelocity.GetSafeNormal();
+			MoveBarrel(AimDirection);
+			auto Time = GetWorld()->GetTimeSeconds();
+			UE_LOG(LogTemp, Warning, TEXT("%f Aim Solution Found"), Time);
+		}
+		else
+		{
+			auto Time = GetWorld()->GetTimeSeconds();
+			UE_LOG(LogTemp, Warning, TEXT("%f No Aim Solution Found"), Time);
+		}
 }
-// Called every frame
-void UTankAimingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
-}
-void UTankAimingComponent::AimAt(FVector HitLocation)
+void UTankAimingComponent::MoveBarrel(FVector AimDirection)
 {
-	auto OurTankname = GetOwner()->GetName();
-	auto BarrelLocation = Barrel->GetComponentLocation().ToString();
-	UE_LOG(LogTemp, Warning, TEXT("%s aiming At %s from %s"), *OurTankname, *HitLocation.ToString(),*BarrelLocation);
+	// work out diffrence between current barrel rotation and aim direction
+	auto BarrelRotator = Barrel->GetForwardVector().Rotation();
+	auto AimAsRotator = AimDirection.Rotation();
+	auto DeltaROtator = AimAsRotator - BarrelRotator;
+
+	Barrel->Elevate(5);
 }
