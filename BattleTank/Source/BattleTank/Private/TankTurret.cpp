@@ -5,10 +5,11 @@
 
 
 
-void UTankTurret::Azimuth(float RelativeSpeed)
+void UTankTurret::Rotate(float RelativeSpeed)
 {
+
 	RelativeSpeed = FMath::Clamp<float>(RelativeSpeed, -1, +1);
-	auto AzimuthChange = RelativeSpeed * MaxDegreeperSecond * GetWorld()->DeltaTimeSeconds;
-	auto Rotation = RelativeRotation.Yaw + AzimuthChange;
+	auto RotationChange = RelativeSpeed * MaxDegreeperSecond * GetWorld()->DeltaTimeSeconds;
+	auto Rotation = RelativeRotation.Yaw + RotationChange;
 	SetRelativeRotation(FRotator(0,Rotation,0));
 }

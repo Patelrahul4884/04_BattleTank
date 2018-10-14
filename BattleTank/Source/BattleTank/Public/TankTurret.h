@@ -15,7 +15,7 @@ class BATTLETANK_API UTankTurret : public UStaticMeshComponent
 	GENERATED_BODY()
 
 public:
-	void Azimuth(float RelativeSpeed);
+	void Rotate(float RelativeSpeed);
 
 private:
 	UPROPERTY(EditAnywhere, Category = Setup)
