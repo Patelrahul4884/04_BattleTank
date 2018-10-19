@@ -18,6 +18,6 @@ public:
 	void Rotate(float RelativeSpeed);
 
 private:
-	UPROPERTY(EditDefaultsOnly, Category = Setup)
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
 		float MaxDegreeperSecond = 25; //sensible default
 };

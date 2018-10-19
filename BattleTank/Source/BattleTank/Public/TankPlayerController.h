@@ -4,17 +4,22 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "TankPlayerController.generated.h"
+
+class UTankAimingComponent;
+
 /**
  * 
  */
-class ATank;
+
 UCLASS()
 class BATTLETANK_API ATankPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+protected:
+		UFUNCTION(BlueprintImplementableEvent, Category = "Setup")
+			void FoundAimingComponent(UTankAimingComponent*AimComRef);
 private:
-	ATank* GetControlledTank() const;
-	
+
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	void AimTowardsCrosshair();

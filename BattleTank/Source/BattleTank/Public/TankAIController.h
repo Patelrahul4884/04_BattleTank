@@ -7,7 +7,6 @@
 /**
  * 
  */
-class ATank;
 UCLASS()
 class BATTLETANK_API ATankAIController : public AAIController
 {
@@ -17,6 +16,6 @@ class BATTLETANK_API ATankAIController : public AAIController
 private:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	//bool GetSightRayHitLocation(FVector& OutHitLocation) const;
 
+	float AcceptanceRadius = 300;
 };
